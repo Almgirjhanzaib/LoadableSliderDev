@@ -1,33 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="text" format="string" />
+    <attr name="text_size" format="dimension" />
+    <attr name="text_style" format="enum">
+        <enum name="normal" value="0" />
+        <enum name="bold" value="1" />
+        <enum name="italic" value="2" />
+    </attr>
+    <attr name="area_margin" format="dimension" />
+    <attr name="icon_margin" format="dimension" />
+    <attr name="inner_color" format="color" />
+    <attr name="outer_color" format="color" />
+    <attr name="text_color" format="color" />
+    <attr name="border_radius" format="dimension" />
+    <attr name="slider_height" format="dimension" />
+    <attr name="animation_duration" format="integer" />
+    <attr name="bump_vibration" format="integer" />
+    <attr name="slider_locked" format="boolean" />
+    <attr name="slider_reversed" format="boolean" />
+    <attr name="slider_icon" format="reference" />
+    <attr name="slider_icon_color" format="color" />
+    <attr name="rotate_icon" format="boolean" />
+    <attr name="animate_completion" format="boolean" />
+    <attr name="text_appearance" format="reference" />
+    <attr name="complete_icon" format="reference" />
+
+
     <declare-styleable name="SlideToActView">
-        <attr name="text" format="string" />
-        <attr name="text_size" format="dimension" />
-        <attr name="text_style" format="enum">
-            <enum name="normal" value="0" />
-            <enum name="bold" value="1" />
-            <enum name="italic" value="2" />
-        </attr>
-        <attr name="area_margin" format="dimension" />
-        <attr name="icon_margin" format="dimension" />
-        <attr name="inner_color" format="color" />
-        <attr name="outer_color" format="color" />
-        <attr name="text_color" format="color" />
-        <attr name="border_radius" format="dimension" />
-        <attr name="slider_height" format="dimension" />
-        <attr name="animation_duration" format="integer" />
-        <attr name="bump_vibration" format="integer" />
-        <attr name="slider_locked" format="boolean" />
-        <attr name="slider_reversed" format="boolean" />
-        <attr name="slider_icon" format="reference" />
-        <attr name="slider_icon_color" format="color" />
-        <attr name="rotate_icon" format="boolean" />
-        <attr name="animate_completion" format="boolean" />
-        <attr name="text_appearance" format="reference" />
-        <attr name="complete_icon" format="reference" />
+        <attr name="text" />
+        <attr name="text_size" />
+        <attr name="text_style"/>
+        <attr name="area_margin" />
+        <attr name="icon_margin" />
+        <attr name="inner_color" />
+        <attr name="outer_color" />
+        <attr name="text_color" />
+        <attr name="border_radius" />
+        <attr name="slider_height" />
+        <attr name="animation_duration" />
+        <attr name="bump_vibration" />
+        <attr name="slider_locked" />
+        <attr name="slider_reversed" />
+        <attr name="slider_icon" />
+        <attr name="slider_icon_color" />
+        <attr name="rotate_icon" />
+        <attr name="animate_completion" />
+        <attr name="text_appearance" />
+        <attr name="complete_icon" />
         <attr name="state_complete" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="LoadingSliderView">
+        <attr name="text" />
+        <attr name="text_size" />
+        <attr name="text_style"/>
+        <attr name="area_margin" />
+        <attr name="icon_margin" />
+        <attr name="inner_color" />
+        <attr name="outer_color" />
+        <attr name="text_color" />
+        <attr name="border_radius" />
+        <attr name="slider_height" />
+        <attr name="animation_duration" />
+        <attr name="bump_vibration" />
+        <attr name="slider_locked" />
+        <attr name="slider_reversed" />
+
+        <attr name="slider_loadable" format="boolean" />
+        <attr name="slider_icon" />
+        <attr name="slider_icon_color" />
+        <attr name="rotate_icon" />
+        <attr name="animate_completion" />
+        <attr name="text_appearance" />
+        <attr name="loading_icon" format="reference" />
     </declare-styleable>
     <declare-styleable name="SlideToActViewTheme">
         <attr name="slideToActViewStyle" format="reference" />
+    </declare-styleable>
+    <declare-styleable name="LoadingSliderViewTheme">
+        <attr name="loadingSliderViewStyle" format="reference" />
     </declare-styleable>
 </resources>

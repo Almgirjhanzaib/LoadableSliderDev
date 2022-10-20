@@ -93,6 +93,35 @@ internal object SlideToActIconUtil {
             return tickAnimator
         }
     }
+    fun createIconAnimator(
+        view: LoadingSliderView,
+        icon: Drawable,
+        listener: ValueAnimator.AnimatorUpdateListener
+    ): ValueAnimator {
+        if (fallbackToFadeAnimation(icon)) {
+            // Fallback not using AVD.
+            val tickAnimator = ValueAnimator.ofInt(0, 255)
+            tickAnimator.addUpdateListener(listener)
+            tickAnimator.addUpdateListener {
+                icon.alpha = it.animatedValue as Int
+                view.invalidate()
+            }
+            return tickAnimator
+        } else {
+            // Used AVD Animation.
+            val tickAnimator = ValueAnimator.ofInt(0)
+            var startedOnce = false
+            tickAnimator.addUpdateListener(listener)
+            tickAnimator.addUpdateListener {
+                if (!startedOnce) {
+                    startIconAnimation(icon)
+                    view.invalidate()
+                    startedOnce = true
+                }
+            }
+            return tickAnimator
+        }
+    }
 
     /**
      * Logic to decide if we should do a Fade or use the [AnimatedVectorDrawable] animation.
