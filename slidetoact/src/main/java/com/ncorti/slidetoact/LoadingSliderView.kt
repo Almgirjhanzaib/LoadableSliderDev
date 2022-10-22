@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.TypedArray
 import android.graphics.*
-import android.graphics.drawable.AnimationDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.VibrationEffect
@@ -19,13 +18,17 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewOutlineProvider
+import android.view.animation.Animation
 import android.view.animation.AnticipateOvershootInterpolator
 import android.view.animation.OvershootInterpolator
+import android.view.animation.RotateAnimation
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -34,6 +37,7 @@ import com.ncorti.slidetoact.SlideToActIconUtil.createIconAnimator
 import com.ncorti.slidetoact.SlideToActIconUtil.loadIconCompat
 import com.ncorti.slidetoact.SlideToActIconUtil.stopIconAnimation
 import com.ncorti.slidetoact.SlideToActIconUtil.tintIconCompat
+
 
 /**
  *  Class representing the custom view, LoadingSliderView.
@@ -164,7 +168,16 @@ class LoadingSliderView @JvmOverloads constructor(
         }
 
     /** Custom Loader Icon */
-    var loadingIcon: Int = R.drawable.slidetoact_ic_rotate_right
+    var loadingIcon: Int = R.drawable.ic_progress
+        set(value) {
+            field = value
+            if (field != 0) {
+                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
+                    DrawableCompat.setTint(it, iconColor)
+                }
+                invalidate()
+            }
+        }
 
     /** Slider cursor position (between 0 and (`mAreaWidth - mAreaHeight)) */
     private var mPosition: Int = 0
@@ -300,6 +313,7 @@ class LoadingSliderView @JvmOverloads constructor(
         val actualIconColor: Int
 
         val actualCompleteDrawable: Int
+        val actualLoadingDrawable:Int
 
         mTextView = TextView(context)
         mTextPaint = mTextView.paint
@@ -390,7 +404,7 @@ class LoadingSliderView @JvmOverloads constructor(
 
                 loadingIcon = getResourceId(
                     R.styleable.LoadingSliderView_loading_icon,
-                    R.drawable.slidetoact_ic_rotate_right
+                    R.drawable.ic_progress
                 )
 
                 // For icon color. check if the `slide_icon_color` is set.
@@ -558,10 +572,21 @@ class LoadingSliderView @JvmOverloads constructor(
             mAreaHeight - mTickMargin
         )
 
+
         tintIconCompat(mDrawableTick, innerColor)
+
+
         if (mFlagDrawTick) {
             mDrawableTick.draw(canvas)
         }
+
+        if (isRotateIcon) {
+            mArrowAngle = 180 * mPositionPerc * (if (isReversed) 1 else -1)
+            canvas.rotate(mArrowAngle, mInnerRect.centerX(), mInnerRect.centerY())
+        }
+
+
+
     }
 
     // Intentionally override `performClick` to do not lose accessibility support.
@@ -712,6 +737,7 @@ class LoadingSliderView @JvmOverloads constructor(
                 mTickMargin = mIconMargin
             }
         }
+
         val tickAnimator: ValueAnimator = createIconAnimator(this, mDrawableTick, tickListener)
 
         val animators = mutableListOf<Animator>()
@@ -752,6 +778,86 @@ class LoadingSliderView @JvmOverloads constructor(
         })
         animSet.start()
     }
+    private fun startLoadingAnimationComplete() {
+        mForceShowText = false
+        val animSet = AnimatorSet()
+
+        // Animator that moves the cursor
+        val finalPositionAnimator = ValueAnimator.ofInt(mPosition, mAreaWidth - mAreaHeight)
+        finalPositionAnimator.addUpdateListener {
+            mPosition = it.animatedValue as Int
+            invalidate()
+        }
+
+        // Animator that bounce away the cursors
+        val marginAnimator = ValueAnimator.ofInt(
+            mActualAreaMargin, (mInnerRect.width() / 2).toInt() + mActualAreaMargin
+        )
+        marginAnimator.addUpdateListener {
+            mActualAreaMargin = it.animatedValue as Int
+           invalidate()
+        }
+        marginAnimator.interpolator = AnticipateOvershootInterpolator(2f)
+
+        // Animator that reduces the outer area (to right)
+        val areaAnimator = ValueAnimator.ofInt(0, (mAreaWidth - mAreaHeight) / 2)
+        areaAnimator.addUpdateListener {
+            mActualAreaWidth = it.animatedValue as Int
+            if (Build.VERSION.SDK_INT >= 21) {
+               invalidateOutline()
+            }
+            invalidate()
+        }
+
+        val tickListener = ValueAnimator.AnimatorUpdateListener {
+            // We need to enable the drawing of the AnimatedVectorDrawable before starting it.
+            if (!mFlagDrawTick) {
+                mFlagDrawTick = true
+                mTickMargin = mIconMargin
+            }
+        }
+
+
+        val tickAnimator: ValueAnimator = createIconAnimator(this, mDrawableArrow, tickListener)
+
+        val animators = mutableListOf<Animator>()
+        if (mPosition < mAreaWidth - mAreaHeight) {
+            animators.add(finalPositionAnimator)
+        }
+
+        if (isAnimateCompletion) {
+            animators.add(marginAnimator)
+            animators.add(areaAnimator)
+            animators.add(tickAnimator)
+        }
+
+        animSet.playSequentially(*animators.toTypedArray())
+
+        animSet.duration = animDuration
+
+        animSet.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(p0: Animator?) {
+             /*   onSlideToActAnimationEventListener?.onSlideCompleteAnimationStarted(
+                    this@LoadingSliderView, mPositionPerc
+                )*/
+            }
+
+            override fun onAnimationCancel(p0: Animator?) {
+            }
+
+            override fun onAnimationEnd(p0: Animator?) {
+              /*  mIsCompleted = true
+                onSlideToActAnimationEventListener?.onSlideCompleteAnimationEnded(
+                    this@LoadingSliderView
+                )
+                onSlideCompleteListener?.onSlideComplete(this@LoadingSliderView)*/
+            }
+
+            override fun onAnimationRepeat(p0: Animator?) {
+            }
+        })
+        animSet.start()
+    }
 
     var progressBar: ProgressBar = ProgressBar(this@LoadingSliderView.context)
 
@@ -781,6 +887,8 @@ class LoadingSliderView @JvmOverloads constructor(
 
             override fun onAnimationEnd(p0: Animator?) {
                 sliderIcon = loadingIcon
+               // startLoadingAnimationComplete()
+                SlideToActIconUtil.startIconAnimation(mDrawableArrow)
                 mIsCompleted = !isAnimateCompletion
                 onSlideLoadingStartedListener?.onSlideLoadingStarted(this@LoadingSliderView)
             }
@@ -792,8 +900,6 @@ class LoadingSliderView @JvmOverloads constructor(
     }
 
     fun onStartAnimationLoadingIcon() {
-        val animSet = AnimatorSet()
-        var animationDrawable = AnimationDrawable()
 
     }
 
